@@ -21,10 +21,19 @@ type PoetInJSON struct {
 	Title      string   `json:"title"`
 }
 
+// CiInJSON 词
 type CiInJSON struct {
 	Author     string   `json:"author"`
 	Paragraphs []string `json:"paragraphs"`
 	Rhythmic   string   `json:"rhythmic"`
+}
+
+// ShiJingInJSON 诗经
+type ShiJingInJSON struct {
+	Title   string   `json:"title"`
+	Chapter string   `json:"chapter"`
+	Section string   `json:"section"`
+	Content []string `json:"content"`
 }
 
 func main() {
@@ -36,7 +45,12 @@ func main() {
 	// 	panic(err)
 	// }
 	//插入词
-	err := InsertCi(db)
+	// err := InsertCi(db)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//插入诗经InsertShijing
+	err := InsertShijing(db)
 	if err != nil {
 		panic(err)
 	}
@@ -136,14 +150,14 @@ func InsertCi(db *gorm.DB) error {
 			defer jsonFile.Close()
 
 			//解组
-			var poets []CiInJSON
-			err1 := json.Unmarshal(byteValue, &poets)
+			var cis []CiInJSON
+			err1 := json.Unmarshal(byteValue, &cis)
 			if err1 != nil {
 				panic(err1)
 			}
 
 			//遍历
-			for _, ci := range poets {
+			for _, ci := range cis {
 				//执行INSERT
 				if err := tx.Exec("INSERT INTO `ci` (`author`,`paragraph`,`rhythmic`,`dynasty`) VALUES (?,?,?,?)", ci.Author, strings.Join(ci.Paragraphs, ""), ci.Rhythmic, dynasty).Error; err != nil {
 					log.Panicf("%s, %s", ci, err)
@@ -152,6 +166,49 @@ func InsertCi(db *gorm.DB) error {
 					return err
 				}
 			}
+		}
+	}
+
+	return tx.Commit().Error
+}
+
+// InsertShijing 读取诗经并INSERT到数据库
+func InsertShijing(db *gorm.DB) error {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return err
+	}
+
+	//读取文件
+	jsonFile, err := os.Open(filepath.Join("..", "shijing", "shijing.json"))
+	if err != nil {
+		log.Panic(err)
+		panic(err)
+	}
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	defer jsonFile.Close()
+
+	//解组
+	var shijings []ShiJingInJSON
+	err1 := json.Unmarshal(byteValue, &shijings)
+	if err1 != nil {
+		panic(err1)
+	}
+
+	//遍历
+	for _, shijing := range shijings {
+		//执行INSERT
+		if err := tx.Exec("INSERT INTO `shijing` (`title`,`chapter`,`section`,`content`) VALUES (?,?,?,?)", shijing.Title, shijing.Chapter, shijing.Section, strings.Join(shijing.Content, "")).Error; err != nil {
+			log.Panicf("%s, %s", shijing, err)
+			//回滚
+			tx.Rollback()
+			return err
 		}
 	}
 

@@ -32,3 +32,16 @@ CREATE TABLE `ci` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
+
+## 诗经
+
+```sql
+CREATE TABLE `shijing` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `title` text DEFAULT NULL,
+  `chapter` text DEFAULT NULL,
+  `section`varchar(11) DEFAULT NULL,
+  `content` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
