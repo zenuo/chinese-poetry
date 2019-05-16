@@ -71,7 +71,7 @@ func InsertPoet(db *gorm.DB) error {
 	}
 
 	//遍历文件夹
-	files, err := ioutil.ReadDir(filepath.Join("..", "json"))
+	files, err := ioutil.ReadDir(filepath.Join("..", "shi"))
 	if err != nil {
 		log.Fatal(err)
 		panic(err)
@@ -84,7 +84,7 @@ func InsertPoet(db *gorm.DB) error {
 			//捕获朝代
 			dynasty := validPattern.FindStringSubmatch(file.Name())[1]
 			//读取文件
-			jsonFile, err := os.Open(filepath.Join("..", "json", file.Name()))
+			jsonFile, err := os.Open(filepath.Join("..", "shi", file.Name()))
 			if err != nil {
 				log.Panic(err)
 				panic(err)
