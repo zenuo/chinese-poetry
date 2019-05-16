@@ -12,10 +12,10 @@ CREATE DATABASE `chinese-poetry` CHARACTER SET 'utf8mb4';
 CREATE TABLE `poet` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `dynasty`varchar(11) DEFAULT NULL,
-  `author` varchar(31) DEFAULT NULL,
-  `paragraph` varchar(1023) DEFAULT NULL,
-  `strains` varchar(1023) DEFAULT NULL,
-  `title` varchar(511) DEFAULT NULL,
+  `author` text DEFAULT NULL,
+  `paragraph` text DEFAULT NULL,
+  `strains` text DEFAULT NULL,
+  `title` text DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```

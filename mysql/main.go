@@ -5,32 +5,20 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// Poet 诗的数据库实体
-type Poet struct {
-	ID        uint64 `gorm:"Column:id;auto_increment"`
-	Author    string `gorm:"Column:author"`
-	Paragraph string `gorm:"Column:paragraph"`
-	Strains   string `gorm:"Column:strains"`
-	Title     string `gorm:"Column:title"`
-	Dynasty   string `gorm:"Column:dynasty"`
-}
-
-// PoetInJson 诗的Json实体
-type PoetInJson struct {
+// PoetInJSON 诗的Json实体
+type PoetInJSON struct {
 	Author     string   `json:"author"`
 	Paragraphs []string `json:"paragraphs"`
 	Strains    []string `json:"strains"`
 	Title      string   `json:"title"`
-}
-
-func (Poet) TableName() string {
-	return "poet"
 }
 
 func main() {
@@ -43,6 +31,7 @@ func main() {
 	defer db.Close()
 }
 
+// InsertPoet 读取诗并INSERT到数据库
 func InsertPoet(db *gorm.DB) error {
 	tx := db.Begin()
 	defer func() {
@@ -55,27 +44,45 @@ func InsertPoet(db *gorm.DB) error {
 		return err
 	}
 
-	//读取文件
-	jsonFile, err := os.Open("/home/yz/project/chinese-poetry/json/poet.song.0.json")
+	//遍历文件夹
+	files, err := ioutil.ReadDir("/home/yz/project/chinese-poetry/json")
 	if err != nil {
+		log.Fatal(err)
 		panic(err)
 	}
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	defer jsonFile.Close()
+	//正则模式
+	validPattern := regexp.MustCompile(`^poet\.(.+?)\.[0-9]+\.json`)
+	for _, file := range files {
+		//若匹配
+		if validPattern.MatchString(file.Name()) {
+			//捕获朝代
+			dynasty := validPattern.FindStringSubmatch(file.Name())[1]
+			//读取文件
+			jsonFile, err := os.Open(filepath.Join("..", "json", file.Name()))
+			if err != nil {
+				log.Panic(err)
+				panic(err)
+			}
+			byteValue, _ := ioutil.ReadAll(jsonFile)
+			defer jsonFile.Close()
 
-	//解组
-	var poets []PoetInJson
-	err1 := json.Unmarshal(byteValue, &poets)
-	if err1 != nil {
-		panic(err1)
-	}
+			//解组
+			var poets []PoetInJSON
+			err1 := json.Unmarshal(byteValue, &poets)
+			if err1 != nil {
+				panic(err1)
+			}
 
-	//遍历
-	for _, poet := range poets {
-		if err := tx.Create(&Poet{Dynasty: "song", Author: poet.Author, Paragraph: strings.Join(poet.Paragraphs, ""), Strains: strings.Join(poet.Strains, ""), Title: poet.Title}).Error; err != nil {
-			log.Panicf("%s, %s", poet, err)
-			tx.Rollback()
-			return err
+			//遍历
+			for _, poet := range poets {
+				//执行INSERT
+				if err := tx.Exec("INSERT  INTO `poet` (`author`,`paragraph`,`strains`,`title`,`dynasty`) VALUES (?,?,?,?,?)", poet.Author, strings.Join(poet.Paragraphs, ""), strings.Join(poet.Strains, ""), poet.Title, dynasty).Error; err != nil {
+					log.Panicf("%s, %s", poet, err)
+					//回滚
+					tx.Rollback()
+					return err
+				}
+			}
 		}
 	}
 
