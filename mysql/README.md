@@ -15,7 +15,7 @@ CREATE TABLE `poet` (
   `author` varchar(31) DEFAULT NULL,
   `paragraph` varchar(1023) DEFAULT NULL,
   `strains` varchar(1023) DEFAULT NULL,
-  `title` varchar(127) DEFAULT NULL,
+  `title` varchar(511) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```

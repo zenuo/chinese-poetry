@@ -1,11 +1,17 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// Poet 诗
+// Poet 诗的数据库实体
 type Poet struct {
 	ID        uint64 `gorm:"Column:id;auto_increment"`
 	Author    string `gorm:"Column:author"`
@@ -15,13 +21,21 @@ type Poet struct {
 	Dynasty   string `gorm:"Column:dynasty"`
 }
 
+// PoetInJson 诗的Json实体
+type PoetInJson struct {
+	Author     string   `json:"author"`
+	Paragraphs []string `json:"paragraphs"`
+	Strains    []string `json:"strains"`
+	Title      string   `json:"title"`
+}
+
 func (Poet) TableName() string {
 	return "poet"
 }
 
 func main() {
 	// 打开数据库连接
-	db, _ := gorm.Open("mysql", "app:123456@tcp(localhost:3306)/chinese-poetry?charset=utf8&parseTime=True")
+	db, _ := gorm.Open("mysql", "app:123456@tcp(localhost:3306)/chinese-poetry?charset=utf8mb4&parseTime=True&loc=Local")
 	err := InsertPoet(db)
 	if err != nil {
 		panic(err)
@@ -41,9 +55,28 @@ func InsertPoet(db *gorm.DB) error {
 		return err
 	}
 
-	if err := tx.Create(&Poet{Dynasty: "tang", Author: "李白", Paragraph: "意识"}).Error; err != nil {
-		tx.Rollback()
-		return err
+	//读取文件
+	jsonFile, err := os.Open("/home/yz/project/chinese-poetry/json/poet.song.0.json")
+	if err != nil {
+		panic(err)
+	}
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	defer jsonFile.Close()
+
+	//解组
+	var poets []PoetInJson
+	err1 := json.Unmarshal(byteValue, &poets)
+	if err1 != nil {
+		panic(err1)
+	}
+
+	//遍历
+	for _, poet := range poets {
+		if err := tx.Create(&Poet{Dynasty: "song", Author: poet.Author, Paragraph: strings.Join(poet.Paragraphs, ""), Strains: strings.Join(poet.Strains, ""), Title: poet.Title}).Error; err != nil {
+			log.Panicf("%s, %s", poet, err)
+			tx.Rollback()
+			return err
+		}
 	}
 
 	return tx.Commit().Error
