@@ -31,8 +31,8 @@
 
 ## 数据集合
 
-- 全唐诗 [shi](https://github.com/chinese-poetry/chinese-poetry/tree/master/shi)
-- 全宋诗 [shi](https://github.com/chinese-poetry/chinese-poetry/tree/master/shi)
+- 全唐诗 [shi](https://github.com/zenuo/chinese-poetry/tree/master/shi)
+- 全宋诗 [shi](https://github.com/zenuo/chinese-poetry/tree/master/shi)
 - 全宋词 [ci](https://github.com/chinese-poetry/chinese-poetry/tree/master/ci)
 - 五代·花间集 [wudai](https://github.com/chinese-poetry/chinese-poetry/tree/master/wudai/%E8%8A%B1%E9%97%B4%E9%9B%86)
 - 五代·南唐二主词 [wudai](https://github.com/chinese-poetry/chinese-poetry/tree/master/wudai/%E5%8D%97%E5%94%90%E4%BA%8C%E4%B8%BB%E8%AF%8D)
